@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机语音留言</title>
+    <style>
+        #loading {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        #error {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        #retry {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">正在加载语音留言...</div>
+    <div id="error">抱歉，加载失败。请稍后重试。</div>
+    <div id="retry">
+        <button onclick="tryLoadAudio()">重新加载</button>
+    </div>
+
+    <script>
+        // 音频文件列表
+        const audioFiles = [
+            'audio/message1.mp3',
+            'audio/message2.mp3',
+            'audio/message3.mp3',
+            // 在这里添加更多音频文件
+        ];
+
+        function getRandomAudioUrl(useBackup = false) {
+            // 随机选择一个音频文件
+            const randomIndex = Math.floor(Math.random() * audioFiles.length);
+            const audioFile = audioFiles[randomIndex];
+            
+            // 使用 jsDelivr CDN 加速
+            const cdnUrl = 'https://cdn.jsdelivr.net/gh/15236702150master/n-f-c@main/';
+            // 备用 GitHub raw 链接
+            const rawUrl = 'https://raw.githubusercontent.com/15236702150master/n-f-c/main/';
+            
+            const baseUrl = useBackup ? rawUrl : cdnUrl;
+            return baseUrl + audioFile;
+        }
+
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('retry').style.display = 'block';
+        }
+
+        function tryLoadAudio(useBackup = false) {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('retry').style.display = 'none';
+
+            const audioUrl = getRandomAudioUrl(useBackup);
+            
+            // 先检查文件是否存在
+            fetch(audioUrl, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = audioUrl;
+                    } else {
+                        // 如果 CDN 失败，尝试使用备用链接
+                        if (!useBackup) {
+                            tryLoadAudio(true);
+                        } else {
+                            showError();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('加载失败:', error);
+                    // 如果 CDN 失败，尝试使用备用链接
+                    if (!useBackup) {
+                        tryLoadAudio(true);
+                    } else {
+                        showError();
+                    }
+                });
+        }
+
+        // 页面加载后尝试加载音频
+        window.onload = function() {
+            tryLoadAudio();
+        }
+    </script>
+</body>
+</html>
